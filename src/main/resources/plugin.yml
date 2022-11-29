@@ -1,0 +1,14 @@
+name: Keiba
+version: '${project.version}'
+main: com.github.kumo0621.keiba.Keiba
+api-version: 1.16
+commands:
+  kakeru:
+    permission: kakeru
+  start:
+    permission: start
+permissions:
+  kakeru:
+    default: true
+  start:
+    default: op
