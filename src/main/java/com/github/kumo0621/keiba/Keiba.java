@@ -7,10 +7,12 @@ import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -50,7 +52,28 @@ public final class Keiba extends JavaPlugin implements org.bukkit.event.Listener
             player.sendMessage("満員です。");
         }
     }
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerMoveEvent(PlayerMoveEvent e) {
+        //プレイヤーは地面に立っているか
+        if(((Entity)e.getPlayer()).isOnGround())
+        {
+            //移動先の座標を得る
+            Location loc=e.getTo().clone();
 
+            //座標を１０センチ下に移動する
+            loc.add(0,-0.1,0);
+
+            //その座標にはレッドストーンブロックがあるか
+            if(loc.getBlock().getType().equals(Material.REDSTONE_BLOCK)) {
+                getServer().broadcastMessage("1");
+            }else if(loc.getBlock().getType().equals(Material.REDSTONE_BLOCK)) {
+                getServer().broadcastMessage("1");
+            }
+            else if(loc.getBlock().getType().equals(Material.REDSTONE_BLOCK)){
+
+            }
+        }
+    }
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (command.getName().equals("kakeru")) {
