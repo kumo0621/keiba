@@ -1,25 +1,21 @@
 package com.github.kumo0621.keiba;
 
-import jdk.internal.org.jline.reader.ParsedLine;
-import org.bukkit.ChatColor;
+import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
+import java.util.*;
 
 public final class Keiba extends JavaPlugin implements org.bukkit.event.Listener {
 
@@ -39,41 +35,52 @@ public final class Keiba extends JavaPlugin implements org.bukkit.event.Listener
     }
 
     int number = 0;
+    List<String> joinList = new ArrayList<>();
 
     @EventHandler
     public void clickJoin(PlayerInteractAtEntityEvent event) {
         Player player = event.getPlayer();
-        if (event.getRightClicked().getScoreboardTags().contains("join") && 0 <= number && number <= 10) {
-            config.set(String.valueOf(number), player);
-            number++;
-            saveConfig();
-            player.sendMessage(player + "さんの参加を認めます。");
-        } else {
-            player.sendMessage("満員です。");
+        if (!start) {
+            if (event.getRightClicked().getScoreboardTags().contains("join") && 0 <= number && number <= 10) {
+                joinList.add(number,player.getName());
+                number++;
+                player.sendMessage(player.getName() + "さんの参加を認めます。");
+            } else if (event.getRightClicked().getScoreboardTags().contains("join") && 11 <= number && number <= 100) {
+                player.sendMessage("満員です。");
+            }
         }
     }
+
+    int syuukai = 0;
+    boolean start = false;
+
     @EventHandler(ignoreCancelled = true)
     public void onPlayerMoveEvent(PlayerMoveEvent e) {
         //プレイヤーは地面に立っているか
-        if(((Entity)e.getPlayer()).isOnGround())
-        {
-            //移動先の座標を得る
-            Location loc=e.getTo().clone();
+        //移動先の座標を得る
+        Location loc = e.getTo().clone();
 
-            //座標を１０センチ下に移動する
-            loc.add(0,-0.1,0);
-
-            //その座標にはレッドストーンブロックがあるか
-            if(loc.getBlock().getType().equals(Material.REDSTONE_BLOCK)) {
-                getServer().broadcastMessage("1");
-            }else if(loc.getBlock().getType().equals(Material.REDSTONE_BLOCK)) {
-                getServer().broadcastMessage("1");
-            }
-            else if(loc.getBlock().getType().equals(Material.REDSTONE_BLOCK)){
-
+        //座標を１０センチ下に移動する
+        loc.add(0, -1, 0);
+        Player player = e.getPlayer();
+        //その座標にはレッドストーンブロックがあるか
+        if (start) {
+            if (loc.getBlock().getType().equals(Material.REDSTONE_BLOCK) && syuukai == 0) {
+                config.set(player.getName() + "syuukai", syuukai);
+                syuukai++;
+                player.sendMessage("1周目");
+            } else if (loc.getBlock().getType().equals(Material.IRON_BLOCK) && syuukai == 1) {
+                config.set(player.getName() + "syuukai", syuukai);
+                syuukai++;
+                player.sendMessage("2周目");
+            } else if (loc.getBlock().getType().equals(Material.GOLD_BLOCK) && syuukai == 2) {
+                config.set(player.getName() + "syuukai", syuukai);
+                syuukai++;
+                player.sendMessage("3周目");
             }
         }
     }
+
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (command.getName().equals("kakeru")) {
@@ -81,10 +88,10 @@ public final class Keiba extends JavaPlugin implements org.bukkit.event.Listener
                 Player player = ((Player) sender).getPlayer();
                 PlayerInventory inventory = Objects.requireNonNull(player).getInventory();
                 if (args.length <= 1) {
-                    sender.sendMessage("/kakeru 名前 かけるダイヤの個数");
+                    sender.sendMessage("/kakeru かける名前 かけるダイヤの個数");
                 } else if (inventory.containsAtLeast(new ItemStack(Material.DIAMOND), Integer.parseInt(args[1]))) {
                     config.set(player.getName(), args[0]);
-                    config.set(player.getName()+"setting", args[1]);
+                    config.set(player.getName() + "setting", args[1]);
                     saveConfig();
                     sender.sendMessage(args[0] + "さんに" + args[1] + "個かけました。");
                 } else {
@@ -98,9 +105,11 @@ public final class Keiba extends JavaPlugin implements org.bukkit.event.Listener
 
         if (command.getName().equals("start")) {
             if (sender instanceof Player) {
+                start = true;
 
+                }
             }
-        }
-        return super.onCommand(sender, command, label, args);
+            return super.onCommand(sender, command, label, args);
+
     }
 }
