@@ -35,15 +35,16 @@ public final class Keiba extends JavaPlugin implements org.bukkit.event.Listener
     }
 
     int number = 0;
-    List<String> joinList = new ArrayList<>();
+    Map<Integer, String> joinMap = new HashMap<>();
 
     @EventHandler
     public void clickJoin(PlayerInteractAtEntityEvent event) {
         Player player = event.getPlayer();
         if (!start) {
             if (event.getRightClicked().getScoreboardTags().contains("join") && 0 <= number && number <= 10) {
-                joinList.add(number,player.getName());
+                joinMap.put(syuukai, player.getName());
                 number++;
+
                 player.sendMessage(player.getName() + "さんの参加を認めます。");
             } else if (event.getRightClicked().getScoreboardTags().contains("join") && 11 <= number && number <= 100) {
                 player.sendMessage("満員です。");
@@ -57,7 +58,7 @@ public final class Keiba extends JavaPlugin implements org.bukkit.event.Listener
     @EventHandler(ignoreCancelled = true)
     public void onPlayerMoveEvent(PlayerMoveEvent e) {
         //プレイヤーは地面に立っているか
-        //移動先の座標を得る
+        //移動先の座標[を得る
         Location loc = e.getTo().clone();
 
         //座標を１０センチ下に移動する
@@ -65,10 +66,13 @@ public final class Keiba extends JavaPlugin implements org.bukkit.event.Listener
         Player player = e.getPlayer();
         //その座標にはレッドストーンブロックがあるか
         if (start) {
-            if (loc.getBlock().getType().equals(Material.REDSTONE_BLOCK) && syuukai == 0) {
-                config.set(player.getName() + "syuukai", syuukai);
-                syuukai++;
-                player.sendMessage("1周目");
+            if (loc.getBlock().getType().equals(Material.REDSTONE_BLOCK)) {
+                if (joinMap.containsValue(player)) {
+                    if (joinMap.containsKey(0)) {
+                        syuukai++;
+                        player.sendMessage("1周目");
+                    }
+                }
             } else if (loc.getBlock().getType().equals(Material.IRON_BLOCK) && syuukai == 1) {
                 config.set(player.getName() + "syuukai", syuukai);
                 syuukai++;
@@ -77,6 +81,10 @@ public final class Keiba extends JavaPlugin implements org.bukkit.event.Listener
                 config.set(player.getName() + "syuukai", syuukai);
                 syuukai++;
                 player.sendMessage("3周目");
+            } else if (loc.getBlock().getType().equals(Material.BEDROCK) && syuukai == 3) {
+                config.set(player.getName() + "syuukai", syuukai);
+                syuukai++;
+                player.sendMessage("ゴール");
             }
         }
     }
@@ -106,10 +114,10 @@ public final class Keiba extends JavaPlugin implements org.bukkit.event.Listener
         if (command.getName().equals("start")) {
             if (sender instanceof Player) {
                 start = true;
-
-                }
+                System.out.println(joinMap);
             }
-            return super.onCommand(sender, command, label, args);
+        }
+        return super.onCommand(sender, command, label, args);
 
     }
 }
